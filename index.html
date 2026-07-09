@@ -457,6 +457,42 @@
             cursor: not-allowed;
         }
 
+        /* Görsel üretim modu anahtarı */
+        .mode-btn {
+            background-color: var(--surface);
+            border: 1px solid var(--line);
+            color: var(--ink-soft);
+            border-radius: 999px;
+            width: 48px;
+            flex-shrink: 0;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, transform 0.1s, color 0.2s;
+            box-shadow: var(--shadow);
+        }
+        .mode-btn:hover { border-color: var(--primary); }
+        .mode-btn:active { transform: scale(0.96); }
+        .mode-btn.active {
+            background-color: var(--primary-soft);
+            border-color: var(--primary);
+            color: var(--primary-deep);
+        }
+
+        /* Üretilen görsellerin sohbet içindeki hali */
+        .generated-image {
+            display: block;
+            max-width: 100%;
+            width: 320px;
+            border-radius: 14px;
+            margin-top: 6px;
+            box-shadow: var(--shadow);
+        }
+        .image-caption {
+            font-size: 12px;
+            color: var(--ink-soft);
+            margin-top: 4px;
+        }
+
         .blinking-cursor::after {
             content: '|';
             animation: blink 1s step-end infinite;
@@ -746,6 +782,7 @@
         </div>
 
         <div class="input-container">
+            <button id="image-mode-btn" class="mode-btn" onclick="toggleImageMode()" title="Görsel üretim modu (Peach)" aria-label="Görsel üretim modu">🎨</button>
             <input type="text" id="user-input" class="input-box" placeholder="Ouirelle'e bir mesaj gönder..." autocomplete="off">
             <button id="send-btn" class="send-btn" onclick="sendMessage()">Gönder</button>
         </div>
@@ -830,6 +867,8 @@
         const chatContainer = document.getElementById('chat-container');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
+        const imageModeBtn = document.getElementById('image-mode-btn');
+        let imageMode = false;
         const chatHistory = document.getElementById('chat-history');
         const authScreen = document.getElementById('auth-screen');
         const loginBox = document.getElementById('login-box');
@@ -1280,6 +1319,11 @@
                 data.messages.forEach(msg => {
                     if (msg.role === "user") {
                         addMessage("Sen", msg.content, "user-message");
+                    } else if (msg.type === "image" && msg.image_base64) {
+                        const html =
+                            `<img src="data:image/png;base64,${msg.image_base64}" class="generated-image" alt="${escapeHtml(msg.content || '')}">` +
+                            `<div class="image-caption">${escapeHtml(msg.content || '')}</div>`;
+                        addMessage("Ouirelle", html, "ouirelle-message");
                     } else {
                         addMessage("Ouirelle", msg.content.replace(/\n/g, '<br>'), "ouirelle-message");
                     }
@@ -1290,6 +1334,16 @@
             } catch (err) {
                 chatContainer.innerHTML = "<span style='color:red;'>[Sohbet yüklenemedi.]</span>";
             }
+        }
+
+        // --- GÖRSEL ÜRETİM MODU (Peach) ---
+        function toggleImageMode() {
+            imageMode = !imageMode;
+            imageModeBtn.classList.toggle('active', imageMode);
+            userInput.placeholder = imageMode
+                ? "Ne çizeyim? (örn. gün batımında uçan bir balina)"
+                : "Ouirelle'e bir mesaj gönder...";
+            userInput.focus();
         }
 
         function startNewChat() {
@@ -1310,6 +1364,11 @@
             if (!text) return;
             if (!token) {
                 handleLogout();
+                return;
+            }
+
+            if (imageMode) {
+                await sendImageRequest(text);
                 return;
             }
 
@@ -1372,6 +1431,67 @@
             } finally {
                 sendBtn.disabled = false;
                 sendBtn.textContent = "Gönder";
+                userInput.focus();
+            }
+        }
+
+        // --- GÖRSEL İSTEĞİ GÖNDERME (Peach) ---
+        async function sendImageRequest(prompt) {
+            const token = localStorage.getItem("ouirelle_token");
+
+            let temporaryLi = null;
+            if (isNewChat) {
+                chatContainer.innerHTML = "";
+                const title = "🎨 " + prompt.split(" ").slice(0, 4).join(" ") + "...";
+                temporaryLi = createChatListItem(null, title);
+                temporaryLi.classList.add('active');
+                chatHistory.prepend(temporaryLi);
+            }
+
+            addMessage("Sen", escapeHtml(prompt), "user-message");
+            userInput.value = "";
+            sendBtn.disabled = true;
+            sendBtn.textContent = "Çiziliyor...";
+            imageModeBtn.disabled = true;
+
+            const responseContainer = addMessage("Ouirelle", "<span class='blinking-cursor'></span>", "ouirelle-message");
+            const textNode = responseContainer.querySelector('.message-content');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/image`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify({ prompt: prompt, chat_id: currentChatId })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail || "Görsel üretilemedi.");
+
+                if (isNewChat) {
+                    currentChatId = data.chat_id;
+                    isNewChat = false;
+                    if (temporaryLi) {
+                        temporaryLi.id = `sidebar-chat-${data.chat_id}`;
+                        temporaryLi.dataset.chatId = data.chat_id;
+                    }
+                }
+
+                textNode.innerHTML =
+                    `<img src="data:image/png;base64,${data.image_base64}" class="generated-image" alt="${escapeHtml(prompt)}">` +
+                    `<div class="image-caption">${escapeHtml(prompt)}</div>`;
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            } catch (error) {
+                textNode.innerHTML = `<span style='color:red;'>[Görsel Hatası: ${error.message}]</span>`;
+                if (isNewChat && temporaryLi) temporaryLi.remove();
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.textContent = "Gönder";
+                imageModeBtn.disabled = false;
                 userInput.focus();
             }
         }
