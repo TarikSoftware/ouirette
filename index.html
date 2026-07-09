@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ouirelle AI 0.1a</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&family=Nunito:wght@400;600;700&family=Poppins:wght@400;500;600&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Yumuşak Altın & Berrak Beyaz paleti */
+            --bg:            #FAF6EC;  /* sıcak krem zemin */
+            --surface:       #FFFFFF;  /* berrak beyaz kart */
+            --sidebar-bg:    #F5EEDC;  /* açık altın kenar çubuğu */
+            --ink:           #3B3220;  /* koyu sıcak metin */
+            --ink-soft:      #8A7A57;  /* soluk altın ikincil metin */
+            --line:          #ECE2CC;  /* yumuşak altın çizgi */
+            --primary:       #C6A15B;  /* yumuşak altın */
+            --primary-deep:  #A8823D;  /* koyu altın */
+            --primary-soft:  #F6EFDD;  /* çok açık altın yıkama */
+            --ouirelle-text: #A8823D;  /* asistan ismi rengi */
+            --user-text:     #6B5A34;  /* kullanıcı ismi rengi */
+            --danger:        #C0563C;
+            --header-bg:     rgba(250, 246, 236, 0.85);
+            --app-font:      'Inter', 'Segoe UI', system-ui, sans-serif;
+            --radius:        16px;
+            --shadow:        0 4px 20px rgba(120, 95, 40, 0.08);
+            --shadow-lg:     0 18px 55px rgba(90, 65, 20, 0.18);
+        }
+
+        /* --- KOYU TEMA --- */
+        html[data-theme="dark"] {
+            --bg:            #1C1A17;
+            --surface:       #26231E;
+            --sidebar-bg:    #201D19;
+            --ink:           #EDE6D6;
+            --ink-soft:      #A99C7E;
+            --line:          #37322A;
+            --primary:       #D4B26A;
+            --primary-deep:  #E6C878;
+            --primary-soft:  #2E2A22;
+            --ouirelle-text: #E6C878;
+            --user-text:     #D4B26A;
+            --danger:        #E0745A;
+            --header-bg:     rgba(28, 26, 23, 0.85);
+            --shadow:        0 4px 20px rgba(0, 0, 0, 0.35);
+            --shadow-lg:     0 18px 55px rgba(0, 0, 0, 0.55);
+        }
+        html[data-theme="dark"] #auth-screen {
+            background:
+                radial-gradient(900px 560px at 18% 8%, #3A3016 0%, transparent 55%),
+                radial-gradient(820px 560px at 86% 92%, #2E2712 0%, transparent 52%),
+                #1C1A17;
+        }
+        html[data-theme="dark"] .auth-error { background-color: #3A241E; }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--app-font);
+            background-color: var(--bg);
+            display: flex;
+            height: 100vh;
+            height: 100dvh;
+            color: var(--ink);
+            overflow: hidden;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        button { font-family: inherit; }
+        input { font-family: inherit; color: var(--ink); }
+
+        /* Altın gradyanlı logo yazısı */
+        .brand-mark {
+            font-family: 'Sora', sans-serif;
+            font-weight: 800;
+            background: linear-gradient(120deg, #C6A15B, #E6C878, #B8860B);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        /* --- GİRİŞ / KAYIT EKRANI (Auth Screen) --- */
+        #auth-screen {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            z-index: 1000;
+            background:
+                radial-gradient(900px 560px at 18% 8%, #F4DCA0 0%, transparent 55%),
+                radial-gradient(820px 560px at 86% 92%, #E9C77A 0%, transparent 52%),
+                #F4EBD6;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+
+        .auth-box {
+            width: 100%;
+            max-width: 380px;
+            padding: 40px 36px;
+            text-align: center;
+            background: var(--surface);
+            border-radius: 24px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .auth-box .brand-mark {
+            font-size: 34px;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .auth-box p {
+            color: var(--ink-soft);
+            margin-bottom: 26px;
+            font-size: 14px;
+        }
+
+        .auth-input {
+            width: 100%;
+            padding: 13px 15px;
+            margin-bottom: 12px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: var(--surface);
+        }
+
+        .auth-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-soft);
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 13px;
+            background-color: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            margin-top: 6px;
+            margin-bottom: 10px;
+        }
+
+        .auth-btn:hover { background-color: var(--primary-deep); }
+        .auth-btn:active { transform: scale(0.98); }
+
+        .auth-switch {
+            background: none;
+            border: none;
+            color: var(--primary-deep);
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .auth-switch:hover { text-decoration: underline; }
+
+        .auth-error {
+            color: var(--danger);
+            background-color: #FBEDE8;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: none;
+            text-align: left;
+        }
+
+        /* --- SOL PANEL (Sidebar) --- */
+        .sidebar {
+            width: 268px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--line);
+            padding: 18px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            height: 100%;
+            flex-shrink: 0;
+            transition: transform 0.28s ease;
+        }
+
+        .sidebar-brand {
+            font-family: 'Sora', sans-serif;
+            font-size: 20px;
+            padding: 6px 8px 2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: space-between;
+        }
+
+        /* Sadece mobilde görünen kapatma butonu */
+        .sidebar-close {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 22px;
+            line-height: 1;
+            color: var(--ink-soft);
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 8px;
+        }
+        .sidebar-close:hover { background: var(--primary-soft); color: var(--ink); }
+
+        /* Çekmece açıkken arka planı karartan örtü */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(45, 35, 15, 0.38);
+            backdrop-filter: blur(2px);
+            z-index: 40;
+            opacity: 0;
+            transition: opacity 0.28s ease;
+        }
+        .sidebar-overlay.show { opacity: 1; }
+
+        .new-chat-btn {
+            background-color: var(--surface);
+            color: var(--primary-deep);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--shadow);
+        }
+
+        .new-chat-btn:hover {
+            background-color: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .chat-history {
+            list-style: none;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .chat-history li {
+            padding: 11px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s, color 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chat-history li:hover { background-color: var(--primary-soft); }
+
+        .chat-history li.active {
+            background-color: var(--primary);
+            color: #fff;
+        }
+
+        /* Sol Panel Profil Alanı */
+        .user-profile {
+            margin-top: auto;
+            padding-top: 14px;
+            border-top: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: var(--ink);
+            min-width: 0;
+        }
+        .user-info span:last-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--ink-soft);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: color 0.2s;
+            flex-shrink: 0;
+        }
+        .logout-btn:hover { color: var(--danger); }
+
+        /* --- ANA İÇERİK --- */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+        }
+
+        .header {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 16px;
+            padding-top: max(14px, env(safe-area-inset-top));
+            font-size: 20px;
+            position: sticky;
+            top: 0;
+            background: var(--header-bg);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--line);
+            z-index: 10;
+        }
+        .header .brand-mark { font-size: 22px; }
+
+        /* Hamburger menü butonu — yalnızca mobilde görünür */
+        .menu-btn {
+            display: none;
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--line);
+            background: var(--surface);
+            border-radius: 12px;
+            font-size: 18px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-deep);
+            box-shadow: var(--shadow);
+        }
+        .menu-btn:active { transform: translateY(-50%) scale(0.94); }
+
+        .chat-container {
+            width: 100%;
+            max-width: 850px;
+            flex: 1;
+            padding: 24px 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .message-bubble {
+            background-color: var(--surface);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            line-height: 1.6;
+            max-width: 85%;
+            box-shadow: var(--shadow);
+            word-wrap: break-word;
+            font-size: 15px;
+        }
+
+        .ouirelle-message {
+            align-self: flex-start;
+            border-left: 3px solid var(--primary);
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: var(--primary-soft);
+        }
+
+        /* Sıkışık mesaj yoğunluğu */
+        html[data-density="sik"] .message-bubble { padding: 12px 15px; font-size: 14px; }
+        html[data-density="sik"] .chat-container { gap: 10px; }
+
+        .user-message strong { color: var(--user-text); }
+        .ouirelle-message strong { color: var(--ouirelle-text); }
+        .message-bubble strong {
+            font-family: 'Sora', sans-serif;
+            font-weight: 600;
+        }
+
+        /* Scrollbar Ayarları */
+        ::-webkit-scrollbar { width: 9px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 6px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+        /* --- GİRİŞ ALANI --- */
+        .input-container {
+            width: 100%;
+            max-width: 850px;
+            padding: 14px 20px 26px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .input-box {
+            flex: 1;
+            background-color: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 14px 20px;
+            font-size: 15px;
+            outline: none;
+            transition: border 0.2s, box-shadow 0.2s;
+            box-shadow: var(--shadow);
+        }
+
+        .input-box:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-soft);
+        }
+
+        .send-btn {
+            background-color: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 0 28px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .send-btn:hover { background-color: var(--primary-deep); }
+        .send-btn:active { transform: scale(0.98); }
+        .send-btn:disabled {
+            background-color: var(--line);
+            color: var(--ink-soft);
+            cursor: not-allowed;
+        }
+
+        .blinking-cursor::after {
+            content: '|';
+            animation: blink 1s step-end infinite;
+            color: var(--primary);
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* --- SOHBET LİSTESİ ÖĞESİ + SİLME --- */
+        .chat-item { display: flex; align-items: center; gap: 6px; }
+        .chat-title {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .chat-del-btn {
+            flex-shrink: 0;
+            background: none;
+            border: none;
+            color: var(--ink-soft);
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+            padding: 4px 6px;
+            border-radius: 8px;
+            opacity: 0;
+            transition: opacity .15s, background .15s, color .15s;
+        }
+        .chat-item:hover .chat-del-btn { opacity: 1; }
+        .chat-del-btn:hover { background: rgba(0,0,0,0.08); color: var(--danger); }
+        .chat-history li.active .chat-del-btn { color: rgba(255,255,255,0.85); opacity: 1; }
+        .chat-history li.active .chat-del-btn:hover { background: rgba(255,255,255,0.22); color: #fff; }
+
+        /* --- ALT ARAÇ BUTONU (Ayarlar) --- */
+        .sidebar-tool-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            background: none;
+            border: 1px solid transparent;
+            color: var(--ink-soft);
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s, color .2s;
+            text-align: left;
+        }
+        .sidebar-tool-btn:hover { background: var(--primary-soft); color: var(--ink); }
+
+        /* --- AYARLAR MODALI --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(30, 22, 8, 0.45);
+            backdrop-filter: blur(3px);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+        .modal-overlay.show { display: flex; }
+
+        .settings-modal {
+            width: 100%;
+            max-width: 460px;
+            max-height: 88vh;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .settings-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--line);
+        }
+        .settings-title { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 17px; }
+        .settings-close {
+            background: none; border: none; font-size: 18px; cursor: pointer;
+            color: var(--ink-soft); padding: 4px 8px; border-radius: 8px;
+        }
+        .settings-close:hover { background: var(--primary-soft); color: var(--ink); }
+
+        .settings-tabs {
+            display: flex; gap: 4px;
+            padding: 10px 14px 0;
+            border-bottom: 1px solid var(--line);
+        }
+        .stab {
+            background: none; border: none; cursor: pointer;
+            padding: 10px 12px; font-size: 14px; font-weight: 600;
+            color: var(--ink-soft);
+            border-bottom: 2px solid transparent;
+            border-radius: 8px 8px 0 0;
+        }
+        .stab:hover { color: var(--ink); }
+        .stab.active { color: var(--primary-deep); border-bottom-color: var(--primary); }
+
+        .settings-body { padding: 18px 20px; overflow-y: auto; }
+        .srow {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 12px; margin-bottom: 18px;
+        }
+        .srow:last-child { margin-bottom: 0; }
+        .srow.col { flex-direction: column; align-items: stretch; }
+        .srow.col .slabel { margin-bottom: 8px; }
+        .slabel { font-size: 14px; font-weight: 600; color: var(--ink); }
+
+        .seg { display: flex; background: var(--primary-soft); border-radius: 10px; padding: 3px; gap: 2px; }
+        .seg button {
+            background: none; border: none; cursor: pointer;
+            padding: 7px 11px; font-size: 13px; font-weight: 600;
+            color: var(--ink-soft); border-radius: 8px; white-space: nowrap;
+        }
+        .seg button.sel { background: var(--surface); color: var(--primary-deep); box-shadow: var(--shadow); }
+
+        .swatches { display: flex; gap: 8px; }
+        .swatch {
+            width: 26px; height: 26px; border-radius: 50%;
+            background: var(--sw); border: 2px solid var(--surface);
+            cursor: pointer; padding: 0;
+            outline: 2px solid transparent; outline-offset: 2px;
+            transition: outline-color .15s;
+        }
+        .swatch.sel { outline-color: var(--sw); }
+
+        .sselect, .sinput {
+            background: var(--surface); border: 1px solid var(--line);
+            border-radius: 10px; padding: 9px 12px; font-size: 14px;
+            color: var(--ink); outline: none;
+        }
+        .sselect { cursor: pointer; }
+        .sinput { width: 100%; }
+        .sselect:focus, .sinput:focus {
+            border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft);
+        }
+        .shint { font-size: 12px; color: var(--ink-soft); margin-top: 6px; }
+
+        .usage-loading { text-align: center; color: var(--ink-soft); padding: 24px 4px; font-size: 14px; line-height: 1.5; }
+        .usage-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .ucard {
+            background: var(--primary-soft); border: 1px solid var(--line);
+            border-radius: 14px; padding: 14px; text-align: center;
+        }
+        .ucard.wide { grid-column: 1 / -1; }
+        .unum { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 24px; color: var(--primary-deep); }
+        .unum.small { font-size: 18px; }
+        .ulbl { font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
+
+        /* Dokunmatik cihazlarda silme butonu her zaman görünür */
+        @media (hover: none) {
+            .chat-del-btn { opacity: 1; }
+        }
+        @media (max-width: 768px) {
+            .seg button { padding: 7px 9px; font-size: 12px; }
+        }
+
+        /* ---------- MOBİL ---------- */
+        @media (max-width: 768px) {
+            .main-content { min-width: 0; width: 100%; }
+
+            .menu-btn { display: flex; }
+            .sidebar-close { display: block; }
+
+            /* Kenar çubuğu kayan çekmece olur */
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                width: 82vw;
+                max-width: 320px;
+                z-index: 50;
+                transform: translateX(-100%);
+                box-shadow: var(--shadow-lg);
+                padding-top: max(18px, env(safe-area-inset-top));
+            }
+            .sidebar.open { transform: translateX(0); }
+            .sidebar-overlay.show { display: block; }
+
+            .chat-container {
+                padding: 16px 14px;
+                gap: 14px;
+            }
+            .message-bubble {
+                max-width: 92%;
+                padding: 15px 16px;
+                font-size: 15px;
+            }
+
+            .input-container {
+                padding: 10px 12px;
+                padding-bottom: max(14px, env(safe-area-inset-bottom));
+                gap: 8px;
+            }
+            .input-box {
+                padding: 13px 18px;
+                font-size: 16px; /* iOS'ta otomatik yakınlaştırmayı engeller */
+            }
+            .send-btn { padding: 0 20px; }
+
+            .auth-box { padding: 32px 22px; }
+        }
+
+        @media (max-width: 380px) {
+            .send-btn {
+                padding: 0 16px;
+                font-size: 14px;
+            }
+            .header .brand-mark { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- GİRİŞ / KAYIT EKRANI (AUTH OVERLAY) -->
+    <div id="auth-screen">
+        <!-- Giriş Paneli -->
+        <div class="auth-box" id="login-box">
+            <div class="brand-mark">✨ Ouirelle</div>
+            <p>Yapay zeka atölyesine adım at</p>
+            <div class="auth-error" id="login-error"></div>
+            <input type="email" id="login-email" class="auth-input" placeholder="E-posta adresi" autocomplete="email">
+            <input type="password" id="login-password" class="auth-input" placeholder="Şifre">
+            <button class="auth-btn" id="login-btn" onclick="handleLogin()">Giriş Yap</button>
+            <button class="auth-switch" onclick="toggleAuthMode('register')">Hesabın yok mu? Kayıt Ol</button>
+        </div>
+
+        <!-- Kayıt Paneli -->
+        <div class="auth-box" id="register-box" style="display: none;">
+            <div class="brand-mark">✨ Ouirelle</div>
+            <p>Yeni bir Ouirelle zihni oluştur</p>
+            <div class="auth-error" id="register-error"></div>
+            <input type="text" id="reg-name" class="auth-input" placeholder="Ad Soyad" autocomplete="name">
+            <input type="email" id="reg-email" class="auth-input" placeholder="E-posta adresi" autocomplete="email">
+            <input type="password" id="reg-password" class="auth-input" placeholder="Güçlü bir şifre">
+            <button class="auth-btn" id="register-btn" onclick="handleRegister()">Kayıt Ol</button>
+            <button class="auth-switch" onclick="toggleAuthMode('login')">Zaten hesabın var mı? Giriş Yap</button>
+        </div>
+    </div>
+
+    <!-- ANA UYGULAMA ARAYÜZÜ -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <span class="brand-mark">✨ Ouirelle</span>
+            <button class="sidebar-close" onclick="closeSidebar()" aria-label="Menüyü kapat">✕</button>
+        </div>
+        <button class="new-chat-btn" onclick="startNewChat()">+ Yeni Sohbet</button>
+        <ul class="chat-history" id="chat-history"></ul>
+
+        <!-- Ayarlar sekmesi -->
+        <button class="sidebar-tool-btn" onclick="openSettings()">
+            <span>⚙</span><span>Ayarlar</span>
+        </button>
+
+        <!-- Alt Profil Alanı -->
+        <div class="user-profile">
+            <div class="user-info">
+                <span>✨</span>
+                <span id="user-display-name">Yükleniyor...</span>
+            </div>
+            <button class="logout-btn" onclick="handleLogout()">Çıkış Yap</button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <button class="menu-btn" onclick="openSidebar()" aria-label="Menüyü aç">☰</button>
+            <span class="brand-mark">✨ Ouirelle</span>
+        </div>
+
+        <div class="chat-container" id="chat-container">
+            <div class="message-bubble ouirelle-message">
+                <strong>Ouirelle:</strong> Merhaba, ben Ouirelle. ✨<br><br>Hoş geldin. Bugün ne geliştirmek veya tasarlamak istersin?
+            </div>
+        </div>
+
+        <div class="input-container">
+            <input type="text" id="user-input" class="input-box" placeholder="Ouirelle'e bir mesaj gönder..." autocomplete="off">
+            <button id="send-btn" class="send-btn" onclick="sendMessage()">Gönder</button>
+        </div>
+    </div>
+
+    <!-- AYARLAR MODALI -->
+    <div class="modal-overlay" id="settings-overlay">
+        <div class="settings-modal">
+            <div class="settings-head">
+                <span class="settings-title">⚙ Ayarlar</span>
+                <button class="settings-close" onclick="closeSettings()" aria-label="Kapat">✕</button>
+            </div>
+
+            <div class="settings-tabs">
+                <button class="stab active" data-tab="gorunum" onclick="switchSettingsTab('gorunum')">Görünüm</button>
+                <button class="stab" data-tab="kullanim" onclick="switchSettingsTab('kullanim')">Kullanım</button>
+                <button class="stab" data-tab="kisisel" onclick="switchSettingsTab('kisisel')">Kişiselleştirme</button>
+            </div>
+
+            <div class="settings-body">
+                <!-- GÖRÜNÜM -->
+                <div class="spanel" data-panel="gorunum">
+                    <div class="srow">
+                        <div class="slabel">Tema</div>
+                        <div class="seg">
+                            <button data-theme-opt="light" onclick="setTheme('light')">☀ Açık</button>
+                            <button data-theme-opt="dark" onclick="setTheme('dark')">🌙 Koyu</button>
+                            <button data-theme-opt="system" onclick="setTheme('system')">🖥 Sistem</button>
+                        </div>
+                    </div>
+                    <div class="srow">
+                        <div class="slabel">Vurgu rengi</div>
+                        <div class="swatches">
+                            <button class="swatch" data-accent-opt="altin"   style="--sw:#C6A15B" onclick="setAccent('altin')"   title="Altın"></button>
+                            <button class="swatch" data-accent-opt="gul"     style="--sw:#C67B8E" onclick="setAccent('gul')"     title="Gül"></button>
+                            <button class="swatch" data-accent-opt="adacayi" style="--sw:#8AA57E" onclick="setAccent('adacayi')" title="Adaçayı"></button>
+                            <button class="swatch" data-accent-opt="lavanta" style="--sw:#9B8BC4" onclick="setAccent('lavanta')" title="Lavanta"></button>
+                            <button class="swatch" data-accent-opt="gok"     style="--sw:#6FA0C6" onclick="setAccent('gok')"     title="Gökyüzü"></button>
+                        </div>
+                    </div>
+                    <div class="srow">
+                        <div class="slabel">Yazı tipi</div>
+                        <select id="font-select" class="sselect" onchange="onFontChange(this.value)">
+                            <option value="inter">Inter (varsayılan)</option>
+                            <option value="nunito">Nunito</option>
+                            <option value="poppins">Poppins</option>
+                            <option value="lora">Lora (serif)</option>
+                            <option value="sistem">Sistem yazı tipi</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- KULLANIM -->
+                <div class="spanel" data-panel="kullanim" hidden>
+                    <div id="usage-body"><div class="usage-loading">Yükleniyor...</div></div>
+                </div>
+
+                <!-- KİŞİSELLEŞTİRME -->
+                <div class="spanel" data-panel="kisisel" hidden>
+                    <div class="srow col">
+                        <div class="slabel">Sana nasıl hitap edelim?</div>
+                        <input id="nickname-input" class="sinput" type="text" maxlength="30"
+                               placeholder="Örn. Tareque" oninput="onNicknameChange(this.value)">
+                        <div class="shint">Yeni sohbet açıldığında Ouirelle seni bu isimle karşılar.</div>
+                    </div>
+                    <div class="srow">
+                        <div class="slabel">Mesaj yoğunluğu</div>
+                        <div class="seg">
+                            <button data-density-opt="rahat" onclick="setDensity('rahat')">Rahat</button>
+                            <button data-density-opt="sik" onclick="setDensity('sik')">Sıkışık</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DİKKAT: Buraya kendi güncel Ngrok linkini yazmalısın!
+        const API_BASE_URL = "https://landlord-rekindle-wispy.ngrok-free.dev";
+
+        const chatContainer = document.getElementById('chat-container');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const chatHistory = document.getElementById('chat-history');
+        const authScreen = document.getElementById('auth-screen');
+        const loginBox = document.getElementById('login-box');
+        const registerBox = document.getElementById('register-box');
+        const userDisplayName = document.getElementById('user-display-name');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+        // --- SOHBET STATE YÖNETİMİ ---
+        let currentChatId = null;
+        let isNewChat = true;
+
+        // --- MOBİL KENAR ÇUBUĞU (ÇEKMECE) ---
+        function openSidebar() {
+            sidebar.classList.add('open');
+            sidebarOverlay.classList.add('show');
+        }
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('show');
+        }
+        // Küçük ekranlarda çekmece açıkken bir öğe seçilince otomatik kapansın
+        function closeSidebarOnMobile() {
+            if (window.matchMedia('(max-width: 768px)').matches) closeSidebar();
+        }
+
+        // ================= AYARLAR & KİŞİSELLEŞTİRME =================
+        const settingsOverlay = document.getElementById('settings-overlay');
+
+        const ACCENTS = {
+            altin:   { primary:'#C6A15B', deep:'#A8823D', soft:'#F6EFDD', softDark:'#2E2A22' },
+            gul:     { primary:'#C67B8E', deep:'#A85870', soft:'#F7E9EE', softDark:'#2E2226' },
+            adacayi: { primary:'#8AA57E', deep:'#5F7E56', soft:'#EAF1E6', softDark:'#232A22' },
+            lavanta: { primary:'#9B8BC4', deep:'#7461A8', soft:'#EEEAF7', softDark:'#262230' },
+            gok:     { primary:'#6FA0C6', deep:'#487EA8', soft:'#E6EFF7', softDark:'#222830' },
+        };
+        const FONTS = {
+            inter:   "'Inter', 'Segoe UI', system-ui, sans-serif",
+            nunito:  "'Nunito', 'Segoe UI', sans-serif",
+            poppins: "'Poppins', 'Segoe UI', sans-serif",
+            lora:    "'Lora', Georgia, serif",
+            sistem:  "system-ui, -apple-system, 'Segoe UI', sans-serif",
+        };
+
+        function getSetting(key, def) { return localStorage.getItem(key) || def; }
+
+        function escapeHtml(s) {
+            return String(s).replace(/[&<>"']/g, c =>
+                ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+        }
+
+        function greetingHTML() {
+            const nick = (localStorage.getItem('ouirelle_nickname') || '').trim();
+            const hitap = nick ? `Merhaba ${escapeHtml(nick)}` : 'Merhaba';
+            return `<strong>Ouirelle:</strong> ${hitap}, ben Ouirelle. ✨<br><br>Hoş geldin. Bugün ne geliştirmek veya tasarlamak istersin?`;
+        }
+
+        function applyTheme(theme) {
+            let eff = theme;
+            if (theme === 'system') {
+                eff = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', eff);
+            // primary-soft tema bağımlı olduğu için vurgu rengini yeniden uygula
+            applyAccent(getSetting('ouirelle_accent', 'altin'));
+        }
+
+        function applyAccent(name) {
+            const a = ACCENTS[name] || ACCENTS.altin;
+            const root = document.documentElement;
+            const isDark = root.getAttribute('data-theme') === 'dark';
+            root.style.setProperty('--primary', a.primary);
+            root.style.setProperty('--primary-deep', a.deep);
+            root.style.setProperty('--primary-soft', isDark ? a.softDark : a.soft);
+            root.style.setProperty('--ouirelle-text', a.deep);
+        }
+
+        function applyFont(name) {
+            document.documentElement.style.setProperty('--app-font', FONTS[name] || FONTS.inter);
+        }
+
+        function applyDensity(d) {
+            document.documentElement.setAttribute('data-density', d);
+        }
+
+        function loadSettings() {
+            applyTheme(getSetting('ouirelle_theme', 'light'));
+            applyAccent(getSetting('ouirelle_accent', 'altin'));
+            applyFont(getSetting('ouirelle_font', 'inter'));
+            applyDensity(getSetting('ouirelle_density', 'rahat'));
+        }
+
+        // 'Sistem' modundayken işletim sistemi teması değişirse yansıt
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            if (getSetting('ouirelle_theme', 'light') === 'system') applyTheme('system');
+        });
+
+        function syncSettingsUI() {
+            const theme = getSetting('ouirelle_theme', 'light');
+            document.querySelectorAll('[data-theme-opt]').forEach(b =>
+                b.classList.toggle('sel', b.dataset.themeOpt === theme));
+
+            const accent = getSetting('ouirelle_accent', 'altin');
+            document.querySelectorAll('[data-accent-opt]').forEach(b =>
+                b.classList.toggle('sel', b.dataset.accentOpt === accent));
+
+            const density = getSetting('ouirelle_density', 'rahat');
+            document.querySelectorAll('[data-density-opt]').forEach(b =>
+                b.classList.toggle('sel', b.dataset.densityOpt === density));
+
+            const fontSel = document.getElementById('font-select');
+            if (fontSel) fontSel.value = getSetting('ouirelle_font', 'inter');
+
+            const nickIn = document.getElementById('nickname-input');
+            if (nickIn) nickIn.value = localStorage.getItem('ouirelle_nickname') || '';
+        }
+
+        function openSettings() {
+            settingsOverlay.classList.add('show');
+            switchSettingsTab('gorunum');
+            syncSettingsUI();
+            closeSidebarOnMobile();
+        }
+        function closeSettings() { settingsOverlay.classList.remove('show'); }
+
+        function switchSettingsTab(tab) {
+            document.querySelectorAll('.stab').forEach(b =>
+                b.classList.toggle('active', b.dataset.tab === tab));
+            document.querySelectorAll('.spanel').forEach(p =>
+                p.hidden = (p.dataset.panel !== tab));
+            if (tab === 'kullanim') loadUsage();
+        }
+
+        function setTheme(t)   { localStorage.setItem('ouirelle_theme', t);   applyTheme(t);   syncSettingsUI(); }
+        function setAccent(a)  { localStorage.setItem('ouirelle_accent', a);  applyAccent(a);  syncSettingsUI(); }
+        function setDensity(d) { localStorage.setItem('ouirelle_density', d); applyDensity(d); syncSettingsUI(); }
+        function onFontChange(v) { localStorage.setItem('ouirelle_font', v); applyFont(v); }
+        function onNicknameChange(v) {
+            const val = v.trim();
+            if (val) localStorage.setItem('ouirelle_nickname', val);
+            else localStorage.removeItem('ouirelle_nickname');
+        }
+
+        async function loadUsage() {
+            const box = document.getElementById('usage-body');
+            if (!box) return;
+            const token = localStorage.getItem('ouirelle_token');
+            box.innerHTML = "<div class='usage-loading'>Yükleniyor...</div>";
+            if (!token) { box.innerHTML = "<div class='usage-loading'>Bu bilgiyi görmek için giriş yapmalısın.</div>"; return; }
+
+            try {
+                const r = await fetch(`${API_BASE_URL}/usage`, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' }
+                });
+                if (!r.ok) throw new Error();
+                const d = await r.json();
+                const tarih = d.uye_tarihi ? new Date(d.uye_tarihi).toLocaleDateString('tr-TR') : '—';
+                const kchar = (d.toplam_karakter || 0).toLocaleString('tr-TR');
+                box.innerHTML = `
+                    <div class="usage-grid">
+                        <div class="ucard"><div class="unum">${d.sohbet_sayisi ?? 0}</div><div class="ulbl">Sohbet</div></div>
+                        <div class="ucard"><div class="unum">${d.toplam_mesaj ?? 0}</div><div class="ulbl">Toplam mesaj</div></div>
+                        <div class="ucard"><div class="unum">${d.kullanici_mesaj ?? 0}</div><div class="ulbl">Senin mesajın</div></div>
+                        <div class="ucard"><div class="unum">${d.lotus_mesaj ?? 0}</div><div class="ulbl">Ouirelle yanıtı</div></div>
+                        <div class="ucard wide"><div class="unum">${kchar}</div><div class="ulbl">Toplam karakter</div></div>
+                        <div class="ucard wide"><div class="unum small">${tarih}</div><div class="ulbl">Üyelik tarihi</div></div>
+                    </div>`;
+            } catch (e) {
+                box.innerHTML = "<div class='usage-loading'>Kullanım verisi alınamadı.<br>Backend'in güncel sürümü çalışıyor mu?</div>";
+            }
+        }
+
+        // Arka plana tıklayınca / Escape ile kapat
+        settingsOverlay.addEventListener('click', (e) => {
+            if (e.target === settingsOverlay) closeSettings();
+        });
+
+        // Tema/font/yoğunluğu sayfa açılır açılmaz uygula (yanıp sönmeyi engeller)
+        loadSettings();
+
+        // Enter tuşu dinleyicisi
+        userInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Escape ile çekmeceyi kapat
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") { closeSidebar(); closeSettings(); }
+        });
+        // Masaüstü genişliğine geçilince çekmece durumunu temizle
+        window.addEventListener("resize", () => {
+            if (!window.matchMedia('(max-width: 768px)').matches) closeSidebar();
+        });
+
+        // --- SAYFA YÜKLENDİĞİNDE AUTH KONTROLÜ ---
+        document.addEventListener("DOMContentLoaded", () => {
+            const token = localStorage.getItem("ouirelle_token");
+            const name = localStorage.getItem("ouirelle_user_name");
+
+            if (token) {
+                authScreen.style.opacity = '0';
+                authScreen.style.visibility = 'hidden';
+                userDisplayName.textContent = name || "Kullanıcı";
+                chatContainer.innerHTML = `<div class="message-bubble ouirelle-message">${greetingHTML()}</div>`;
+                loadUserChatHistory();
+            } else {
+                userDisplayName.textContent = "Giriş Yapılmadı";
+            }
+        });
+
+        function toggleAuthMode(mode) {
+            document.getElementById('login-error').style.display = 'none';
+            document.getElementById('register-error').style.display = 'none';
+            if (mode === 'register') {
+                loginBox.style.display = 'none';
+                registerBox.style.display = 'block';
+            } else {
+                registerBox.style.display = 'none';
+                loginBox.style.display = 'block';
+            }
+        }
+
+        // --- GİRİŞ YAPMA İŞLEMİ ---
+        async function handleLogin() {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            const errorDiv = document.getElementById('login-error');
+            const loginBtn = document.getElementById('login-btn');
+
+            if (!email || !password) {
+                errorDiv.textContent = "Lütfen tüm alanları doldurun.";
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                loginBtn.disabled = true;
+                loginBtn.textContent = "Giriş Yapılıyor...";
+
+                const formData = new URLSearchParams();
+                formData.append('username', email);
+                formData.append('password', password);
+
+                const response = await fetch(`${API_BASE_URL}/token`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'ngrok-skip-browser-warning': 'true' // Ngrok uyarısını atlar
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || "Giriş başarısız oldu.");
+                }
+
+                localStorage.setItem("ouirelle_token", data.access_token);
+                localStorage.setItem("ouirelle_user_name", data.user_name);
+                userDisplayName.textContent = data.user_name;
+
+                authScreen.style.opacity = '0';
+                setTimeout(() => authScreen.style.visibility = 'hidden', 400);
+
+                loadUserChatHistory();
+                startNewChat();
+
+            } catch (err) {
+                errorDiv.textContent = err.message;
+                errorDiv.style.display = 'block';
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = "Giriş Yap";
+            }
+        }
+
+        // --- KAYIT OLMA İŞLEMİ ---
+        async function handleRegister() {
+            const name = document.getElementById('reg-name').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const errorDiv = document.getElementById('register-error');
+            const regBtn = document.getElementById('register-btn');
+
+            if (!name || !email || !password) {
+                errorDiv.textContent = "Lütfen tüm alanları eksiksiz doldurun.";
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                regBtn.disabled = true;
+                regBtn.textContent = "Hesap Oluşturuluyor...";
+
+                const response = await fetch(`${API_BASE_URL}/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true' // Ngrok uyarısını atlar
+                    },
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || "Kayıt işlemi başarısız.");
+                }
+
+                alert("Hesabın başarıyla oluşturuldu! Şimdi giriş yapabilirsin.");
+                toggleAuthMode('login');
+                document.getElementById('login-email').value = email;
+
+            } catch (err) {
+                errorDiv.textContent = err.message;
+                errorDiv.style.display = 'block';
+            } finally {
+                regBtn.disabled = false;
+                regBtn.textContent = "Kayıt Ol";
+            }
+        }
+
+        // --- GÜVENLİ ÇIKIŞ YAPMA ---
+        function handleLogout() {
+            localStorage.clear();
+            currentChatId = null;
+            isNewChat = true;
+            chatHistory.innerHTML = "";
+            chatContainer.innerHTML = `<div class="message-bubble ouirelle-message">${greetingHTML()}</div>`;
+            authScreen.style.visibility = 'visible';
+            authScreen.style.opacity = '1';
+            document.getElementById('login-password').value = "";
+        }
+
+        // --- MONGODB'DEN SOHBET GEÇMİŞİNİ YÜKLEME ---
+        async function loadUserChatHistory() {
+            const token = localStorage.getItem("ouirelle_token");
+            if (!token) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/chats`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'ngrok-skip-browser-warning': 'true' // Ngrok uyarısını atlar
+                    }
+                });
+                if (!response.ok) return;
+
+                const chats = await response.json();
+                chatHistory.innerHTML = "";
+
+                chats.forEach(chat => {
+                    chatHistory.appendChild(createChatListItem(chat.id, chat.title));
+                });
+            } catch (e) {
+                console.error("Geçmiş yüklenirken hata oluştu:", e);
+            }
+        }
+
+        // --- SOHBET LİSTESİ ÖĞESİ OLUŞTURMA (başlık + silme) ---
+        function createChatListItem(id, title) {
+            const li = document.createElement("li");
+            li.className = "chat-item";
+            if (id) {
+                li.id = `sidebar-chat-${id}`;
+                li.dataset.chatId = id;
+            }
+
+            const titleSpan = document.createElement("span");
+            titleSpan.className = "chat-title";
+            titleSpan.textContent = title || "Eski Sohbet";
+            li.appendChild(titleSpan);
+
+            const delBtn = document.createElement("button");
+            delBtn.className = "chat-del-btn";
+            delBtn.title = "Sohbeti sil";
+            delBtn.setAttribute("aria-label", "Sohbeti sil");
+            delBtn.textContent = "🗑";
+            li.appendChild(delBtn);
+
+            li.addEventListener("click", (e) => {
+                if (e.target === delBtn) return;
+                const cid = li.dataset.chatId;
+                if (cid) loadSpecificChat(cid, li);
+            });
+            delBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const cid = li.dataset.chatId;
+                if (cid) deleteChat(cid, li);
+            });
+
+            return li;
+        }
+
+        // --- SOHBET SİLME ---
+        async function deleteChat(chatId, liElement) {
+            const token = localStorage.getItem("ouirelle_token");
+            if (!token) return;
+            if (!confirm("Bu sohbeti silmek istediğine emin misin? Bu işlem geri alınamaz.")) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/chats/${chatId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'ngrok-skip-browser-warning': 'true'
+                    }
+                });
+                if (!response.ok) throw new Error();
+
+                liElement.remove();
+                // Açık olan sohbet silindiyse temiz bir ekrana dön
+                if (currentChatId === chatId) startNewChat();
+            } catch (e) {
+                alert("Sohbet silinemedi. Lütfen tekrar dene.");
+            }
+        }
+
+        // --- BELİRLİ BİR SOHBETİN DETAYLARINI EKRANA BASMA ---
+        async function loadSpecificChat(chatId, liElement) {
+            const token = localStorage.getItem("ouirelle_token");
+            if (!token) return;
+
+            try {
+                chatContainer.innerHTML = "<div style='text-align:center; padding:20px; opacity:0.6;'>Sohbet yükleniyor...</div>";
+
+                const response = await fetch(`${API_BASE_URL}/chats/${chatId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'ngrok-skip-browser-warning': 'true' // Ngrok uyarısını atlar
+                    }
+                });
+                if (!response.ok) throw new Error();
+
+                const data = await response.json();
+                chatContainer.innerHTML = "";
+                currentChatId = chatId;
+                isNewChat = false;
+
+                document.querySelectorAll('.chat-history li').forEach(li => li.classList.remove('active'));
+                if (liElement) liElement.classList.add('active');
+                closeSidebarOnMobile();
+
+                data.messages.forEach(msg => {
+                    if (msg.role === "user") {
+                        addMessage("Sen", msg.content, "user-message");
+                    } else {
+                        addMessage("Ouirelle", msg.content.replace(/\n/g, '<br>'), "ouirelle-message");
+                    }
+                });
+
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            } catch (err) {
+                chatContainer.innerHTML = "<span style='color:red;'>[Sohbet yüklenemedi.]</span>";
+            }
+        }
+
+        function startNewChat() {
+            chatContainer.innerHTML = `<div class="message-bubble ouirelle-message">${greetingHTML()}</div>`;
+            isNewChat = true;
+            currentChatId = null;
+            userInput.value = "";
+            document.querySelectorAll('.chat-history li').forEach(li => li.classList.remove('active'));
+            closeSidebarOnMobile();
+            userInput.focus();
+        }
+
+        // --- MESAJA CEVAP VERME VE STREAM ALANI ---
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            const token = localStorage.getItem("ouirelle_token");
+
+            if (!text) return;
+            if (!token) {
+                handleLogout();
+                return;
+            }
+
+            let temporaryLi = null;
+            if (isNewChat) {
+                chatContainer.innerHTML = "";
+                const title = text.split(" ").slice(0, 4).join(" ") + "...";
+                temporaryLi = createChatListItem(null, title);
+                temporaryLi.classList.add('active');
+                chatHistory.prepend(temporaryLi);
+            }
+
+            addMessage("Sen", text, "user-message");
+            userInput.value = "";
+            sendBtn.disabled = true;
+            sendBtn.textContent = "Düşünüyor...";
+
+            const responseContainer = addMessage("Ouirelle", "<span class='blinking-cursor'></span>", "ouirelle-message");
+            const textNode = responseContainer.querySelector('.message-content');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'ngrok-skip-browser-warning': 'true' // Ngrok uyarısını atlar
+                    },
+                    body: JSON.stringify({
+                        message: text,
+                        chat_id: currentChatId
+                    })
+                });
+
+                if (!response.ok) throw new Error("Sunucu hatası veya yetki süresi doldu.");
+
+                const serverChatId = response.headers.get('X-Chat-ID');
+                if (serverChatId && isNewChat) {
+                    currentChatId = serverChatId;
+                    isNewChat = false;
+                    temporaryLi.id = `sidebar-chat-${serverChatId}`;
+                    temporaryLi.dataset.chatId = serverChatId;
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder("utf-8");
+                textNode.innerHTML = "";
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    textNode.innerHTML += chunk.replace(/\n/g, '<br>');
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }
+            } catch (error) {
+                textNode.innerHTML = `<span style='color:red;'>[Sistem Hatası: ${error.message}]</span>`;
+                if (isNewChat && temporaryLi) temporaryLi.remove();
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.textContent = "Gönder";
+                userInput.focus();
+            }
+        }
+
+        function addMessage(sender, text, className) {
+            const bubble = document.createElement("div");
+            bubble.className = `message-bubble ${className}`;
+            bubble.innerHTML = `<strong>${sender}:</strong> <span class="message-content">${text}</span>`;
+            chatContainer.appendChild(bubble);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return bubble;
+        }
+    </script>
+</body>
+</html>
