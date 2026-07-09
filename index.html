@@ -641,6 +641,40 @@
         .shint { font-size: 12px; color: var(--ink-soft); margin-top: 6px; }
 
         .usage-loading { text-align: center; color: var(--ink-soft); padding: 24px 4px; font-size: 14px; line-height: 1.5; }
+
+        /* --- GELİŞTİRİCİ / API ANAHTARLARI --- */
+        .code-block {
+            background: var(--primary-soft); border: 1px solid var(--line);
+            border-radius: 12px; padding: 12px 14px; font-size: 12.5px;
+            overflow-x: auto; position: relative;
+        }
+        .code-block pre { margin: 0; }
+        .code-block code {
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            color: var(--ink); white-space: pre-wrap; word-break: break-all;
+        }
+        .code-block .copy-btn {
+            margin-top: 8px; background: var(--primary); color: #fff; border: none;
+            border-radius: 999px; padding: 6px 14px; font-size: 12px; font-weight: 600;
+            cursor: pointer;
+        }
+        .code-block .copy-btn:hover { background: var(--primary-deep); }
+        .apikey-card {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 10px; background: var(--surface); border: 1px solid var(--line);
+            border-radius: 12px; padding: 10px 12px; margin-bottom: 8px;
+        }
+        .apikey-card.revoked { opacity: 0.5; }
+        .apikey-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .apikey-name { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+        .apikey-sub { font-size: 12px; color: var(--ink-soft); font-family: monospace; }
+        .apikey-revoke-btn {
+            background: none; border: 1px solid var(--danger); color: var(--danger);
+            border-radius: 999px; padding: 5px 12px; font-size: 12px; font-weight: 600;
+            cursor: pointer; flex-shrink: 0;
+        }
+        .apikey-revoke-btn:hover { background: var(--danger); color: #fff; }
+        .apikey-revoke-btn:disabled { opacity: 0.4; cursor: default; }
         .usage-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .ucard {
             background: var(--primary-soft); border: 1px solid var(--line);
@@ -800,6 +834,7 @@
                 <button class="stab active" data-tab="gorunum" onclick="switchSettingsTab('gorunum')">Görünüm</button>
                 <button class="stab" data-tab="kullanim" onclick="switchSettingsTab('kullanim')">Kullanım</button>
                 <button class="stab" data-tab="kisisel" onclick="switchSettingsTab('kisisel')">Kişiselleştirme</button>
+                <button class="stab" data-tab="gelistirici" onclick="switchSettingsTab('gelistirici')">Geliştirici</button>
             </div>
 
             <div class="settings-body">
@@ -854,6 +889,45 @@
                             <button data-density-opt="rahat" onclick="setDensity('rahat')">Rahat</button>
                             <button data-density-opt="sik" onclick="setDensity('sik')">Sıkışık</button>
                         </div>
+                    </div>
+                </div>
+
+                <!-- GELİŞTİRİCİ / API -->
+                <div class="spanel" data-panel="gelistirici" hidden>
+                    <div class="srow col">
+                        <div class="slabel">API anahtarları</div>
+                        <div class="shint" style="margin-top:-4px; margin-bottom: 10px;">
+                            Ouirelle'e kendi uygulamalarından erişmek için bir anahtar üret.
+                            Anahtar sadece oluşturulduğu anda tam olarak gösterilir.
+                        </div>
+                        <div id="apikey-list"><div class="usage-loading">Yükleniyor...</div></div>
+                    </div>
+
+                    <div class="srow col" style="margin-top: 18px;">
+                        <div class="slabel">Yeni anahtar oluştur</div>
+                        <input id="apikey-name-input" class="sinput" type="text" maxlength="60"
+                               placeholder="Anahtar adı (örn. Mobil uygulamam)">
+                        <button class="auth-btn" style="margin-top:10px;" onclick="createApiKey()">+ Anahtar Oluştur</button>
+                    </div>
+
+                    <div id="apikey-reveal" class="srow col" style="display:none; margin-top: 16px;">
+                        <div class="slabel">Yeni anahtarın 🔑</div>
+                        <div class="code-block">
+                            <code id="apikey-reveal-value"></code>
+                            <button class="copy-btn" onclick="copyApiKey()">Kopyala</button>
+                        </div>
+                        <div class="shint">Bu anahtarı şimdi kopyala, bir daha bu haliyle gösterilmeyecek.</div>
+                    </div>
+
+                    <div class="srow col" style="margin-top: 20px;">
+                        <div class="slabel">Kendi uygulamandan nasıl çağırılır</div>
+                        <div class="code-block">
+<pre><code id="curl-example">curl {API_BASE_URL}/v1/chat \
+  -H "Authorization: Bearer ouir-SENIN_ANAHTARIN" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Merhaba Ouirelle!"}'</code></pre>
+                        </div>
+                        <div class="shint">Akış (stream) yanıt istersen isteğe <code>"stream": true</code> ekle; yanıt Server-Sent Events (SSE) olarak gelir.</div>
                     </div>
                 </div>
             </div>
@@ -1000,6 +1074,11 @@
             document.querySelectorAll('.spanel').forEach(p =>
                 p.hidden = (p.dataset.panel !== tab));
             if (tab === 'kullanim') loadUsage();
+            if (tab === 'gelistirici') {
+                const curlEl = document.getElementById('curl-example');
+                if (curlEl) curlEl.textContent = curlEl.textContent.replace('{API_BASE_URL}', API_BASE_URL);
+                loadApiKeys();
+            }
         }
 
         function setTheme(t)   { localStorage.setItem('ouirelle_theme', t);   applyTheme(t);   syncSettingsUI(); }
@@ -1039,6 +1118,100 @@
             } catch (e) {
                 box.innerHTML = "<div class='usage-loading'>Kullanım verisi alınamadı.<br>Backend'in güncel sürümü çalışıyor mu?</div>";
             }
+        }
+
+        // ================= API ANAHTARLARI (GELİŞTİRİCİ) =================
+        async function loadApiKeys() {
+            const box = document.getElementById('apikey-list');
+            if (!box) return;
+            const token = localStorage.getItem('ouirelle_token');
+            box.innerHTML = "<div class='usage-loading'>Yükleniyor...</div>";
+            if (!token) { box.innerHTML = "<div class='usage-loading'>Bu bilgiyi görmek için giriş yapmalısın.</div>"; return; }
+
+            try {
+                const r = await fetch(`${API_BASE_URL}/api-keys`, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' }
+                });
+                if (!r.ok) throw new Error();
+                const keys = await r.json();
+
+                if (!keys.length) {
+                    box.innerHTML = "<div class='usage-loading'>Henüz bir API anahtarın yok.</div>";
+                    return;
+                }
+
+                box.innerHTML = keys.map(k => {
+                    const tarih = k.created_at ? new Date(k.created_at).toLocaleDateString('tr-TR') : '—';
+                    const sonKullanim = k.last_used_at ? new Date(k.last_used_at).toLocaleDateString('tr-TR') : 'hiç kullanılmadı';
+                    return `
+                        <div class="apikey-card ${k.revoked ? 'revoked' : ''}">
+                            <div class="apikey-meta">
+                                <span class="apikey-name">${escapeHtml(k.name || 'Adsız anahtar')}</span>
+                                <span class="apikey-sub">${escapeHtml(k.key_preview || '')} · ${tarih} · ${k.usage_count || 0} çağrı · son: ${sonKullanim}</span>
+                            </div>
+                            <button class="apikey-revoke-btn" ${k.revoked ? 'disabled' : ''}
+                                onclick="revokeApiKey('${k.id}')">${k.revoked ? 'İptal edildi' : 'İptal et'}</button>
+                        </div>`;
+                }).join('');
+            } catch (e) {
+                box.innerHTML = "<div class='usage-loading'>Anahtarlar alınamadı.<br>Backend'in güncel sürümü çalışıyor mu?</div>";
+            }
+        }
+
+        async function createApiKey() {
+            const token = localStorage.getItem('ouirelle_token');
+            if (!token) return;
+            const nameInput = document.getElementById('apikey-name-input');
+            const name = (nameInput.value || '').trim() || 'Varsayılan Anahtar';
+
+            try {
+                const r = await fetch(`${API_BASE_URL}/api-keys`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify({ name })
+                });
+                if (!r.ok) throw new Error();
+                const data = await r.json();
+
+                const reveal = document.getElementById('apikey-reveal');
+                document.getElementById('apikey-reveal-value').textContent = data.api_key;
+                reveal.style.display = 'flex';
+                nameInput.value = '';
+                loadApiKeys();
+            } catch (e) {
+                alert('Anahtar oluşturulamadı. Lütfen tekrar dene.');
+            }
+        }
+
+        async function revokeApiKey(keyId) {
+            const token = localStorage.getItem('ouirelle_token');
+            if (!token) return;
+            if (!confirm('Bu API anahtarını iptal etmek istediğine emin misin? Bu işlem geri alınamaz.')) return;
+
+            try {
+                const r = await fetch(`${API_BASE_URL}/api-keys/${keyId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' }
+                });
+                if (!r.ok) throw new Error();
+                loadApiKeys();
+            } catch (e) {
+                alert('Anahtar iptal edilemedi.');
+            }
+        }
+
+        function copyApiKey() {
+            const val = document.getElementById('apikey-reveal-value').textContent;
+            navigator.clipboard.writeText(val).then(() => {
+                const btn = document.querySelector('#apikey-reveal .copy-btn');
+                const eski = btn.textContent;
+                btn.textContent = 'Kopyalandı ✓';
+                setTimeout(() => { btn.textContent = eski; }, 1500);
+            });
         }
 
         // Arka plana tıklayınca / Escape ile kapat
