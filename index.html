@@ -47,6 +47,41 @@
             --shadow:        0 4px 20px rgba(0, 0, 0, 0.35);
             --shadow-lg:     0 18px 55px rgba(0, 0, 0, 0.55);
         }
+        /* --- EMILY AI MODU: #00aff0 + beyaz paleti --- */
+        html[data-app-mode="emily"] {
+            --bg:            #FFFFFF;
+            --surface:       #FFFFFF;
+            --sidebar-bg:    #F1FAFE;
+            --ink:           #0C2A3A;
+            --ink-soft:      #5C93AC;
+            --line:          #D6EFFB;
+            --primary:       #00AFF0;
+            --primary-deep:  #0090C8;
+            --primary-soft:  #E7F7FE;
+            --ouirelle-text: #0090C8;
+            --user-text:     #0C2A3A;
+            --header-bg:     rgba(255, 255, 255, 0.9);
+        }
+        html[data-theme="dark"][data-app-mode="emily"] {
+            --bg:            #071C26;
+            --surface:       #0D2A38;
+            --sidebar-bg:    #081F29;
+            --ink:           #EAF8FF;
+            --ink-soft:      #86C4E0;
+            --line:          #133A4A;
+            --primary:       #00AFF0;
+            --primary-deep:  #33C4FF;
+            --primary-soft:  #0F3546;
+            --ouirelle-text: #33C4FF;
+            --user-text:     #EAF8FF;
+            --header-bg:     rgba(7, 28, 38, 0.9);
+        }
+        html[data-app-mode="emily"] .brand-mark {
+            background: linear-gradient(120deg, #00AFF0, #33C4FF, #0090C8);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
         html[data-theme="dark"] #auth-screen {
             background:
                 radial-gradient(900px 560px at 18% 8%, #3A3016 0%, transparent 55%),
@@ -545,6 +580,102 @@
         }
         .sidebar-tool-btn:hover { background: var(--primary-soft); color: var(--ink); }
 
+        /* --- MOD GEÇİŞİ (Ouirelle / Emily AI / Ouirelle Code) --- */
+        .app-mode-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--line);
+        }
+        .app-mode-btn {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            width: 100%;
+            background: none;
+            border: none;
+            color: var(--ink-soft);
+            padding: 9px 10px;
+            border-radius: 12px;
+            font-size: 13.5px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: left;
+            transition: background .2s, color .2s;
+        }
+        .app-mode-btn:hover { background: var(--primary-soft); color: var(--ink); }
+        .app-mode-btn.active { background: var(--primary); color: #fff; }
+
+        /* --- PERSONA (Emily AI) IZGARASI --- */
+        .persona-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 14px;
+            width: 100%;
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 6px 4px;
+        }
+        .persona-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 20px 14px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            transition: transform .15s, box-shadow .15s;
+        }
+        .persona-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+        .persona-avatar {
+            font-size: 30px;
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            background: var(--primary-soft);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .persona-name { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 14.5px; color: var(--ink); }
+        .persona-desc {
+            font-size: 12px; color: var(--ink-soft); line-height: 1.4;
+            max-height: 48px; overflow: hidden;
+        }
+        .persona-card.new-persona {
+            border-style: dashed;
+            color: var(--primary-deep);
+            justify-content: center;
+        }
+        .persona-card.new-persona .persona-avatar { background: none; font-size: 26px; }
+        .persona-empty-hint {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: var(--ink-soft);
+            font-size: 14px;
+            padding: 10px 4px 4px;
+        }
+
+        .stextarea {
+            width: 100%;
+            background: var(--surface); border: 1px solid var(--line);
+            border-radius: 10px; padding: 10px 12px; font-size: 14px;
+            color: var(--ink); outline: none; font-family: inherit;
+            min-height: 92px; resize: vertical;
+        }
+        .stextarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+
+        .emoji-swatches { display: flex; flex-wrap: wrap; gap: 6px; }
+        .emoji-swatch {
+            width: 34px; height: 34px; font-size: 17px;
+            border-radius: 10px; border: 1px solid var(--line);
+            background: var(--surface); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .emoji-swatch.sel { border-color: var(--primary); background: var(--primary-soft); }
+
         /* --- AYARLAR MODALI --- */
         .modal-overlay {
             display: none;
@@ -785,7 +916,13 @@
             <span class="brand-mark">✨ Ouirelle</span>
             <button class="sidebar-close" onclick="closeSidebar()" aria-label="Menüyü kapat">✕</button>
         </div>
-        <button class="new-chat-btn" onclick="startNewChat()">+ Yeni Sohbet</button>
+        <div class="app-mode-nav" id="app-mode-nav">
+            <button class="app-mode-btn active" data-app-mode-btn="sohbet" onclick="switchAppMode('sohbet')">✨ Ouirelle</button>
+            <button class="app-mode-btn" data-app-mode-btn="emily" onclick="switchAppMode('emily')">🎭 Emily AI</button>
+            <button class="app-mode-btn" data-app-mode-btn="kod" onclick="switchAppMode('kod')">💻 Ouirelle Code</button>
+        </div>
+
+        <button class="new-chat-btn" id="new-chat-btn" onclick="handleNewChatBtn()">+ Yeni Sohbet</button>
         <ul class="chat-history" id="chat-history"></ul>
 
         <!-- Ayarlar sekmesi -->
@@ -806,7 +943,7 @@
     <div class="main-content">
         <div class="header">
             <button class="menu-btn" onclick="openSidebar()" aria-label="Menüyü aç">☰</button>
-            <span class="brand-mark">✨ Ouirelle</span>
+            <span class="brand-mark" id="main-header-brand">✨ Ouirelle</span>
         </div>
 
         <div class="chat-container" id="chat-container">
@@ -934,6 +1071,35 @@
         </div>
     </div>
 
+    <!-- EMILY AI: KİŞİLİK OLUŞTURMA / DÜZENLEME MODALI -->
+    <div class="modal-overlay" id="persona-modal-overlay">
+        <div class="settings-modal" style="max-width: 420px;">
+            <div class="settings-head">
+                <span class="settings-title" id="persona-modal-title">🎭 Yeni Kişilik</span>
+                <button class="settings-close" onclick="closePersonaModal()" aria-label="Kapat">✕</button>
+            </div>
+            <div class="settings-body">
+                <div class="srow col">
+                    <div class="slabel">Simge</div>
+                    <div class="emoji-swatches" id="persona-emoji-swatches">
+                        <!-- JS ile doldurulur -->
+                    </div>
+                </div>
+                <div class="srow col">
+                    <div class="slabel">İsim</div>
+                    <input id="persona-name-input" class="sinput" type="text" maxlength="40" placeholder="Örn. Elyndra">
+                </div>
+                <div class="srow col">
+                    <div class="slabel">Kişilik tanımı</div>
+                    <textarea id="persona-desc-input" class="stextarea" maxlength="1200"
+                              placeholder="Bu kişiliğin karakterini, konuşma tarzını ve geçmişini anlat..."></textarea>
+                    <div class="shint">Sohbet sırasında bu kişiliğin nasıl davranacağını belirler.</div>
+                </div>
+                <button class="auth-btn" style="margin-top: 6px;" onclick="savePersona()">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // DİKKAT: Buraya kendi güncel Ngrok linkini yazmalısın!
         const API_BASE_URL = "https://landlord-rekindle-wispy.ngrok-free.dev";
@@ -954,6 +1120,250 @@
         // --- SOHBET STATE YÖNETİMİ ---
         let currentChatId = null;
         let isNewChat = true;
+
+        // --- MOD STATE YÖNETİMİ (Ouirelle / Emily AI / Ouirelle Code) ---
+        let currentAppMode = 'sohbet';     // 'sohbet' | 'emily' | 'kod'
+        let currentPersonaId = null;
+        let currentPersonaName = null;
+        let personasCache = [];
+
+        const newChatBtn = document.getElementById('new-chat-btn');
+        const mainHeaderBrand = document.getElementById('main-header-brand');
+        const inputContainerEl = document.querySelector('.input-container');
+
+        const MODE_LABELS = {
+            sohbet: { brand: '✨ Ouirelle', newBtn: '+ Yeni Sohbet', placeholder: "Ouirelle'e bir mesaj gönder..." },
+            kod:    { brand: '💻 Ouirelle Code', newBtn: '+ Yeni Kod Sohbeti', placeholder: "Ouirelle Code'a bir görev ver (kod, hata ayıklama, mimari)..." },
+            emily:  { brand: '🎭 Emily AI', newBtn: '+ Yeni Kişilik', placeholder: "Bir mesaj gönder..." },
+        };
+
+        function authHeaders() {
+            return {
+                'Authorization': `Bearer ${localStorage.getItem("ouirelle_token")}`,
+                'ngrok-skip-browser-warning': 'true',
+            };
+        }
+
+        function handleNewChatBtn() {
+            if (currentAppMode === 'emily') {
+                openPersonaModal();
+            } else {
+                startNewChat();
+            }
+        }
+
+        function switchAppMode(mode) {
+            if (mode === currentAppMode) return;
+            currentAppMode = mode;
+            currentChatId = null;
+            currentPersonaId = null;
+            currentPersonaName = null;
+            isNewChat = true;
+
+            document.documentElement.setAttribute('data-app-mode', mode);
+            document.querySelectorAll('.app-mode-btn').forEach(b =>
+                b.classList.toggle('active', b.dataset.appModeBtn === mode));
+
+            const labels = MODE_LABELS[mode] || MODE_LABELS.sohbet;
+            if (mainHeaderBrand) mainHeaderBrand.textContent = labels.brand;
+            if (newChatBtn) newChatBtn.textContent = labels.newBtn;
+            userInput.placeholder = labels.placeholder;
+
+            // Görsel üretim modu (Peach) sadece normal sohbet modunda anlamlı.
+            if (imageMode) toggleImageMode();
+            if (imageModeBtn) imageModeBtn.style.display = (mode === 'sohbet') ? '' : 'none';
+
+            if (mode === 'emily') {
+                if (inputContainerEl) inputContainerEl.style.display = 'none';
+                showPersonaGrid();
+                loadPersonas();
+            } else {
+                if (inputContainerEl) inputContainerEl.style.display = 'flex';
+                startNewChat();
+                loadUserChatHistory(mode);
+            }
+            closeSidebarOnMobile();
+        }
+
+        // ================= EMILY AI: PERSONA YÖNETİMİ =================
+        const PERSONA_EMOJIS = ['🎭', '🧙', '🤖', '👑', '🐉', '🌙', '⚔️', '🎨', '🦋', '🕵️'];
+        let personaModalEmoji = PERSONA_EMOJIS[0];
+
+        function renderPersonaEmojiSwatches() {
+            const box = document.getElementById('persona-emoji-swatches');
+            if (!box) return;
+            box.innerHTML = '';
+            PERSONA_EMOJIS.forEach(em => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'emoji-swatch' + (em === personaModalEmoji ? ' sel' : '');
+                btn.textContent = em;
+                btn.onclick = () => {
+                    personaModalEmoji = em;
+                    box.querySelectorAll('.emoji-swatch').forEach(b => b.classList.toggle('sel', b.textContent === em));
+                };
+                box.appendChild(btn);
+            });
+        }
+
+        function openPersonaModal() {
+            document.getElementById('persona-modal-title').textContent = '🎭 Yeni Kişilik';
+            document.getElementById('persona-name-input').value = '';
+            document.getElementById('persona-desc-input').value = '';
+            personaModalEmoji = PERSONA_EMOJIS[0];
+            renderPersonaEmojiSwatches();
+            document.getElementById('persona-modal-overlay').classList.add('show');
+        }
+        function closePersonaModal() {
+            document.getElementById('persona-modal-overlay').classList.remove('show');
+        }
+
+        async function savePersona() {
+            const name = document.getElementById('persona-name-input').value.trim();
+            const description = document.getElementById('persona-desc-input').value.trim();
+            if (!name) { alert("Bir isim yazmalısın."); return; }
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/personas`, {
+                    method: 'POST',
+                    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, description, avatar: personaModalEmoji }),
+                });
+                if (!res.ok) throw new Error();
+                closePersonaModal();
+                await loadPersonas();
+                showPersonaGrid();
+            } catch (e) {
+                alert("Kişilik kaydedilemedi. Lütfen tekrar dene.");
+            }
+        }
+
+        async function deletePersona(personaId, liElement) {
+            if (!confirm("Bu kişiliği silmek istediğine emin misin?")) return;
+            try {
+                const res = await fetch(`${API_BASE_URL}/personas/${personaId}`, {
+                    method: 'DELETE', headers: authHeaders(),
+                });
+                if (!res.ok) throw new Error();
+                if (liElement) liElement.remove();
+                personasCache = personasCache.filter(p => p.id !== personaId);
+                if (currentPersonaId === personaId) {
+                    currentPersonaId = null;
+                    currentPersonaName = null;
+                    showPersonaGrid();
+                } else if (!currentPersonaId) {
+                    showPersonaGrid();
+                }
+            } catch (e) {
+                alert("Kişilik silinemedi.");
+            }
+        }
+
+        async function loadPersonas() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/personas`, { headers: authHeaders() });
+                if (!res.ok) return;
+                personasCache = await res.json();
+                if (currentAppMode === 'emily') {
+                    renderPersonaSidebarList();
+                    if (!currentPersonaId) showPersonaGrid();
+                }
+            } catch (e) {
+                console.error("Kişilikler yüklenemedi:", e);
+            }
+        }
+
+        function renderPersonaSidebarList() {
+            chatHistory.innerHTML = '';
+            personasCache.forEach(p => {
+                const li = document.createElement('li');
+                li.className = 'chat-item';
+                li.dataset.personaId = p.id;
+                if (p.id === currentPersonaId) li.classList.add('active');
+
+                const span = document.createElement('span');
+                span.className = 'chat-title';
+                span.textContent = `${p.avatar || '🎭'} ${p.name}`;
+                li.appendChild(span);
+
+                const delBtn = document.createElement('button');
+                delBtn.className = 'chat-del-btn';
+                delBtn.title = 'Kişiliği sil';
+                delBtn.textContent = '🗑';
+                li.appendChild(delBtn);
+
+                li.addEventListener('click', (e) => {
+                    if (e.target === delBtn) return;
+                    openPersonaChat(p);
+                });
+                delBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deletePersona(p.id, li);
+                });
+                chatHistory.appendChild(li);
+            });
+        }
+
+        function showPersonaGrid() {
+            currentPersonaId = null;
+            currentPersonaName = null;
+            currentChatId = null;
+            isNewChat = true;
+            if (inputContainerEl) inputContainerEl.style.display = 'none';
+            document.querySelectorAll('.chat-history li').forEach(li => li.classList.remove('active'));
+
+            if (!personasCache.length) {
+                chatContainer.innerHTML = `
+                    <div class="persona-grid">
+                        <div class="persona-card new-persona" onclick="openPersonaModal()">
+                            <div class="persona-avatar">➕</div>
+                            <div class="persona-name">Yeni Kişilik</div>
+                        </div>
+                        <div class="persona-empty-hint">Henüz bir kişilik oluşturmadın. Sohbet edebileceğin ilk kişiliğini ekle.</div>
+                    </div>`;
+                return;
+            }
+
+            const cards = personasCache.map(p => `
+                <div class="persona-card" onclick='openPersonaChatById("${p.id}")'>
+                    <div class="persona-avatar">${escapeHtml(p.avatar || '🎭')}</div>
+                    <div class="persona-name">${escapeHtml(p.name)}</div>
+                    <div class="persona-desc">${escapeHtml(p.description || '')}</div>
+                </div>`).join('');
+
+            chatContainer.innerHTML = `
+                <div class="persona-grid">
+                    ${cards}
+                    <div class="persona-card new-persona" onclick="openPersonaModal()">
+                        <div class="persona-avatar">➕</div>
+                        <div class="persona-name">Yeni Kişilik</div>
+                    </div>
+                </div>`;
+        }
+
+        function openPersonaChatById(personaId) {
+            const p = personasCache.find(x => x.id === personaId);
+            if (p) openPersonaChat(p);
+        }
+
+        function openPersonaChat(persona) {
+            currentPersonaId = persona.id;
+            currentPersonaName = persona.name;
+            currentChatId = null;
+            isNewChat = true;
+
+            document.querySelectorAll('.chat-history li').forEach(li =>
+                li.classList.toggle('active', li.dataset.personaId === persona.id));
+
+            chatContainer.innerHTML = `<div class="message-bubble ouirelle-message">` +
+                `<strong>${escapeHtml(persona.name)}:</strong> ` +
+                `<span class="message-content">Merhaba, ben ${escapeHtml(persona.name)}. Ne konuşmak istersin?</span></div>`;
+
+            if (inputContainerEl) inputContainerEl.style.display = 'flex';
+            userInput.placeholder = `${persona.name}'e bir mesaj gönder...`;
+            closeSidebarOnMobile();
+            userInput.focus();
+        }
 
         // --- MOBİL KENAR ÇUBUĞU (ÇEKMECE) ---
         function openSidebar() {
@@ -997,6 +1407,9 @@
         function greetingHTML() {
             const nick = (localStorage.getItem('ouirelle_nickname') || '').trim();
             const hitap = nick ? `Merhaba ${escapeHtml(nick)}` : 'Merhaba';
+            if (currentAppMode === 'kod') {
+                return `<strong>Ouirelle Code:</strong> ${hitap}, kod moduna hoş geldin. 💻<br><br>Bir hata mesajı, fonksiyon isteği ya da mimari sorusu paylaşabilirsin.`;
+            }
             return `<strong>Ouirelle:</strong> ${hitap}, ben Ouirelle. ✨<br><br>Hoş geldin. Bugün ne geliştirmek veya tasarlamak istersin?`;
         }
 
@@ -1381,12 +1794,14 @@
         }
 
         // --- MONGODB'DEN SOHBET GEÇMİŞİNİ YÜKLEME ---
-        async function loadUserChatHistory() {
+        async function loadUserChatHistory(mode) {
             const token = localStorage.getItem("ouirelle_token");
             if (!token) return;
+            mode = mode || currentAppMode;
+            if (mode === 'emily') return; // Emily AI listesi persona listesidir, ayrı yönetilir.
 
             try {
-                const response = await fetch(`${API_BASE_URL}/chats`, {
+                const response = await fetch(`${API_BASE_URL}/chats?mode=${encodeURIComponent(mode)}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'ngrok-skip-browser-warning': 'true' // Ngrok uyarısını atlar
@@ -1545,8 +1960,19 @@
                 return;
             }
 
+            if (currentAppMode === 'emily' && !currentPersonaId) {
+                alert("Önce bir kişilik seç ya da oluştur.");
+                return;
+            }
+
+            const displayName = currentAppMode === 'emily'
+                ? (currentPersonaName || 'Emily')
+                : (currentAppMode === 'kod' ? 'Ouirelle Code' : 'Ouirelle');
+
             let temporaryLi = null;
-            if (isNewChat) {
+            // Emily AI modunda kenar çubuğu listesi persona listesidir; her
+            // mesaj için yeni bir liste öğesi oluşturulmaz.
+            if (isNewChat && currentAppMode !== 'emily') {
                 chatContainer.innerHTML = "";
                 const title = text.split(" ").slice(0, 4).join(" ") + "...";
                 temporaryLi = createChatListItem(null, title);
@@ -1559,7 +1985,7 @@
             sendBtn.disabled = true;
             sendBtn.textContent = "Düşünüyor...";
 
-            const responseContainer = addMessage("Ouirelle", "<span class='blinking-cursor'></span>", "ouirelle-message");
+            const responseContainer = addMessage(displayName, "<span class='blinking-cursor'></span>", "ouirelle-message");
             const textNode = responseContainer.querySelector('.message-content');
 
             try {
@@ -1572,7 +1998,9 @@
                     },
                     body: JSON.stringify({
                         message: text,
-                        chat_id: currentChatId
+                        chat_id: currentChatId,
+                        mode: currentAppMode,
+                        persona_id: currentPersonaId
                     })
                 });
 
@@ -1582,8 +2010,10 @@
                 if (serverChatId && isNewChat) {
                     currentChatId = serverChatId;
                     isNewChat = false;
-                    temporaryLi.id = `sidebar-chat-${serverChatId}`;
-                    temporaryLi.dataset.chatId = serverChatId;
+                    if (temporaryLi) {
+                        temporaryLi.id = `sidebar-chat-${serverChatId}`;
+                        temporaryLi.dataset.chatId = serverChatId;
+                    }
                 }
 
                 const reader = response.body.getReader();
